@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <h1 class="mb-4">Список добавленных URL</h1>
+
+    {% if urls %}
+        <table class="table table-striped">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>URL</th>
+                    <th>Дата добавления</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for url in urls %}
+                    <tr>
+                        <td>{{ url['id'] }}</td>
+                        <td><a href="{{ url[name] }}" target="_blank">{{ url['name'] }}</a></td>
+                        <td>{{ url['created_at'].strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="text-muted">Список пуст. Добавьте первый URL!</p>
+    {% endif %}
+
+    <a href="{{ url_for('index') }}" class="btn btn-primary mt-3">Назад</a>
+{% endblock %}

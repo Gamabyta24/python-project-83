@@ -8,4 +8,15 @@
         <p class="lead">Это тестовая страница с Bootstrap.</p>
         <a href="#" class="btn btn-success">Нажми меня</a>
     </div>
+    <h1 class="mb-4">Введите URL</h1>
+    <form method="POST">
+        <div class="mb-3">
+            <input type="text" name="url" class="form-control" placeholder="Введите URL" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Добавить</button>
+    </form>
+
+    {% if error %}
+        <p class="text-danger mt-3">{{ error }}</p>
+    {% endif %}
 {% endblock %}

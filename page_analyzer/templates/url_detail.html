@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+
+{% block title %}Сайт: {{ url.name }}{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h1>Сайт: {{ url.name }}</h1>
+    <p>Дата создания: {{ url.created_at }}</p>
+
+    <h2>Проверки</h2>
+    <table class="table" data-test="checks">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Код ответа</th>
+                <th>H1</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Дата создания</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for check in url_checks %}
+            <tr>
+                <td>{{ check.id }}</td>
+                <td>{{ check.status_code }}</td>
+                <td>{{ check.h1 }}</td>
+                <td>{{ check.title }}</td>
+                <td>{{ check.description }}</td>
+                <td>{{ check.created_at }}</td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="6" class="text-center">Проверки отсутствуют</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Форма для создания новой проверки -->
+    <form action="{{ url_for('add_check', url_id=url.id) }}" method="POST">
+        <button type="submit" class="btn btn-primary">Проверить</button>
+    </form>
+</div>
+{% endblock %}

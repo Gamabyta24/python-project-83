@@ -8,6 +8,14 @@ def get_db_connection():
     return psycopg2.connect(Config.DATABASE_URL, cursor_factory=RealDictCursor)
 
 
+def get_url_by_name(url):
+    """Возвращает запись из БД, если URL уже существует."""
+    with get_db_connection() as conn:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute("SELECT * FROM urls WHERE name = %s", (url,))
+            return cur.fetchone()  # Вернет None, если URL нет в базе
+
+
 # Функция для создания таблицы (исполняется один раз)
 def create_tables():
     with get_db_connection() as conn:
@@ -19,8 +27,11 @@ def create_tables():
 
 # Функция для добавления URL в БД
 def add_url(url):
+    existing_url = get_url_by_name(url)
+    if existing_url:
+        return existing_url["id"]  # Если URL уже есть, просто возвращаем его id
     with get_db_connection() as conn:
-        with conn.cursor() as cur:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("INSERT INTO urls (name) VALUES (%s) RETURNING id", (url,))
             conn.commit()
             return cur.fetchone()["id"]
@@ -31,7 +42,14 @@ def get_all_urls():
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT id, name, created_at FROM urls ORDER BY created_at DESC"
+                """
+                SELECT urls.id, urls.name, urls.created_at,
+                       (SELECT created_at FROM url_checks
+                        WHERE url_checks.url_id = urls.id
+                        ORDER BY created_at DESC
+                        LIMIT 1) AS last_check
+                FROM urls ORDER BY urls.created_at DESC
+                """
             )
             return cur.fetchall()
 
@@ -42,3 +60,55 @@ def get_url_by_id(url_id):
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM urls WHERE id = %s", (url_id,))
             return cur.fetchone()
+
+
+def get_url_checks(url_id):
+    """Возвращает список проверок для указанного URL."""
+    with get_db_connection() as conn:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                """
+                SELECT id, created_at FROM url_checks
+                WHERE url_id = %s ORDER BY created_at DESC
+                """,
+                (url_id,),
+            )
+            return cur.fetchall()
+
+
+def add_url_check(url_id):
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO url_checks (url_id, status_code, h1, title, description)
+                VALUES (%s, NULL, NULL, NULL, NULL)
+                RETURNING id, created_at
+            """,
+                (url_id,),
+            )
+            conn.commit()
+            return cur.fetchone()  # Возвращаем id и created_at новой проверки
+
+
+def get_checks_by_url(url_id):
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT * FROM url_checks WHERE url_id = %s ORDER BY created_at DESC",
+                (url_id,),
+            )
+            return cur.fetchall()
+
+
+def get_last_check_date(url_id):
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """
+                SELECT created_at FROM url_checks WHERE url_id = %s ORDER BY created_at DESC LIMIT 1
+            """,
+                (url_id,),
+            )
+            row = cur.fetchone()
+            return row["created_at"] if row else None

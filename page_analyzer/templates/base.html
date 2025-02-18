@@ -22,8 +22,17 @@
             </div>
         </nav>
     </header>
+    <div class="container mt-3">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+    </div>
     {% endblock %}
-
+    
     <div class="container mt-5">
         {% block content %}{% endblock %}
     </div>

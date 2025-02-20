@@ -132,11 +132,11 @@ def add_url_check(url_id):
                     (url_id, status_code, h1, title, description),
                 )
                 conn.commit()
-
-                return cur.fetchone()  # Возвращает ID и дату создания проверки
+                return True
+                # return cur.fetchone()  # Возвращает ID и дату создания проверки
 
             except requests.RequestException:
-                return None
+                return False
 
 
 def get_checks_by_url(url_id):

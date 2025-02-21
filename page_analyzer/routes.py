@@ -30,7 +30,7 @@ def index():
             existing_url = get_url_by_name(url)
             if existing_url:  # Если URL уже есть в БД
                 url_id = existing_url["id"]
-                flash("Этот URL уже существует", "warning")
+                flash("Страница уже существует", "warning")
             else:
                 url_id = add_url(url)
                 flash("Страница успешно добавлена", "success")
@@ -70,7 +70,7 @@ def add_check(url_id):
         return redirect(url_for("show_url", url_id=url_id))
     success = add_url_check(url_id)
     if success:
-        flash("Проверка успешно выполнена", "success")
+        flash("Страница успешно проверена", "success")
     else:
         flash("Произошла ошибка при проверке", "danger")
 

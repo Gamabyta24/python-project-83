@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 import validators
 from page_analyzer.models import (
-    create_tables,
     add_url,
     get_all_urls,
     get_url_by_id,
@@ -16,7 +15,6 @@ app = Flask(__name__)
 app.config.from_object(Config)
 
 # Создаём таблицы при старте
-create_tables()
 
 
 @app.route("/", methods=["GET", "POST"])

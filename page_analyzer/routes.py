@@ -31,7 +31,7 @@ def index():
                 flash("Этот URL уже существует", "warning")
             else:
                 add_url(url)
-                flash("URL успешно добавлен", "success")
+                flash("Страница успешно добавлена", "success")
 
             return redirect(url_for("show_urls"))
 

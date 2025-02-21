@@ -20,6 +20,7 @@ app.config.from_object(Config)
 @app.route("/", methods=["GET", "POST"])
 def index():
     error = None
+    url_id = None
     if request.method == "POST":
         url = request.form.get("url").strip()
 
@@ -28,6 +29,7 @@ def index():
         else:
             existing_url = get_url_by_name(url)
             if existing_url:  # Если URL уже есть в БД
+                url_id = existing_url["id"]
                 flash("Этот URL уже существует", "warning")
             else:
                 url_id = add_url(url)

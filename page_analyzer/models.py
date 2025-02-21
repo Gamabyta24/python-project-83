@@ -5,8 +5,8 @@ import requests
 from bs4 import BeautifulSoup
 
 
-# Функция для подключения к БД
 def get_db_connection():
+    """Создает соединение с БД."""
     return psycopg2.connect(Config.DATABASE_URL, cursor_factory=RealDictCursor)
 
 
@@ -18,8 +18,8 @@ def get_url_by_name(url):
             return cur.fetchone()  # Вернет None, если URL нет в базе
 
 
-# Функция для создания таблицы (исполняется один раз)
 def create_tables():
+    """Создает таблицы в БД."""
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             with open("database.sql", "r") as f:
@@ -27,8 +27,8 @@ def create_tables():
             conn.commit()
 
 
-# Функция для добавления URL в БД
 def add_url(url):
+    """Добавляет URL в БД, если его еще нет."""
     existing_url = get_url_by_name(url)
     if existing_url:
         return existing_url["id"]  # Если URL уже есть, просто возвращаем его id
@@ -41,6 +41,7 @@ def add_url(url):
 
 # Функция для получения всех URL
 def get_all_urls():
+    """Возвращает все URL из БД."""
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -58,6 +59,7 @@ def get_all_urls():
 
 # Функция для поиска URL по ID
 def get_url_by_id(url_id):
+    """Возвращает запись из БД по ID."""
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute("SELECT * FROM urls WHERE id = %s", (url_id,))
@@ -78,21 +80,8 @@ def get_url_checks(url_id):
             return cur.fetchall()
 
 
-# def add_url_check(url_id):
-#     with get_db_connection() as conn:
-#         with conn.cursor() as cur:
-#             cur.execute(
-#                 """
-#                 INSERT INTO url_checks (url_id, status_code, h1, title, description)
-#                 VALUES (%s, NULL, NULL, NULL, NULL)
-#                 RETURNING id, created_at
-#             """,
-#                 (url_id,),
-#             )
-#             conn.commit()
-#             return cur.fetchone()
-#   # Возвращаем id и created_at новой проверки
 def add_url_check(url_id):
+    """Добавляет проверку URL в БД."""
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             # Получаем URL по ID
@@ -133,13 +122,14 @@ def add_url_check(url_id):
                 )
                 conn.commit()
                 return True
-                # return cur.fetchone()  # Возвращает ID и дату создания проверки
 
             except requests.RequestException:
                 return False
 
 
 def get_checks_by_url(url_id):
+    """Возвращает все проверки для указанного
+    URL в порядке убывания даты создания."""
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
@@ -150,6 +140,7 @@ def get_checks_by_url(url_id):
 
 
 def get_last_check_date(url_id):
+    """Возвращает дату последней проверки для указанного URL."""
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(

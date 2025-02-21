@@ -69,12 +69,6 @@ def add_check(url_id):
         flash("Сайт не найден", "danger")
         return redirect(url_for("show_url", url_id=url_id))
     success = add_url_check(url_id)
-    # Добавляем запись в таблицу url_checks с минимальными данными
-    # try:
-    #     add_url_check(url_id)  # Функция для добавления записи в таблицу проверок
-    #     flash("Проверка добавлена", "success")
-    # except Exception as ex:
-    #     flash(f"Ошибка при добавлении проверки: {ex}", "danger")
     if success:
         flash("Проверка успешно выполнена", "success")
     else:

@@ -18,6 +18,16 @@ def get_url_by_name(url):
             return cur.fetchone()  # Вернет None, если URL нет в базе
 
 
+def drop_tables():
+    with get_db_connection() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """DROP TABLE IF EXISTS urls;
+                            DROP TABLE IF EXISTS url_checks;"""
+            )
+            conn.commit()
+
+
 def create_tables():
     """Создает таблицы в БД."""
     with get_db_connection() as conn:

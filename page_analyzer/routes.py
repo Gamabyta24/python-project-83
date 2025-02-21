@@ -30,10 +30,10 @@ def index():
             if existing_url:  # Если URL уже есть в БД
                 flash("Этот URL уже существует", "warning")
             else:
-                add_url(url)
+                url_id = add_url(url)
                 flash("Страница успешно добавлена", "success")
 
-            return redirect(url_for("show_urls"))
+            return redirect(url_for("show_url", url_id=url_id))
 
     return render_template("index.html", error=error)
 

@@ -3,17 +3,13 @@
 {% block title %}Главная{% endblock %}
 
 {% block content %}
-    <div class="text-center">
-        <h1 class="text-primary">Привет, Flask работает!</h1>
-        <p class="lead">Это тестовая страница с Bootstrap.</p>
-        <a href="#" class="btn btn-success">Нажми меня</a>
-    </div>
     <h1 class="mb-4">Введите URL</h1>
     <form method="POST">
         <div class="mb-3">
             <input type="text" name="url" class="form-control" placeholder="Введите URL" required>
         </div>
-        <button type="submit" class="btn btn-primary">Добавить</button>
+        <!-- <button type="submit" class="btn btn-primary">Добавить</button> -->
+        <input type="submit" value="Проверить">
     </form>
 
     {% if error %}

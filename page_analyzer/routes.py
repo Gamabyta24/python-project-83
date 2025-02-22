@@ -30,7 +30,7 @@ def index():
             existing_url = get_url_by_name(url)
             if existing_url:  # Если URL уже есть в БД
                 url_id = existing_url["id"]
-                flash("Страница уже существует", "warning")
+                flash("Страница уже существует", "info")
             else:
                 url_id = add_url(url)
                 flash("Страница успешно добавлена", "success")

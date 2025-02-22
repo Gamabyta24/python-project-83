@@ -1,7 +1,22 @@
-DROP SEQUENCE IF EXISTS urls_id_seq CASCADE;
-DROP SEQUENCE IF EXISTS url_checks_id_seq CASCADE;
-DROP TABLE IF EXISTS urls CASCADE;
-DROP TABLE IF EXISTS url_checks CASCADE;
+-- DROP SEQUENCE IF EXISTS urls_id_seq CASCADE;
+-- DROP SEQUENCE IF EXISTS url_checks_id_seq CASCADE;
+-- DROP TABLE IF EXISTS urls CASCADE;
+-- DROP TABLE IF EXISTS url_checks CASCADE;
+DO $$ 
+BEGIN
+   IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'urls_id_seq') THEN
+      DROP SEQUENCE urls_id_seq CASCADE;
+   END IF;
+   IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'url_checks_id_seq') THEN
+      DROP SEQUENCE url_checks_id_seq CASCADE;
+   END IF;
+   IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'urls') THEN
+      DROP TABLE urls CASCADE;
+   END IF;
+   IF EXISTS (SELECT 1 FROM pg_class WHERE relname = 'url_checks') THEN
+      DROP TABLE url_checks CASCADE;
+   END IF;
+END $$;
 
 
 CREATE TABLE IF NOT EXISTS urls (

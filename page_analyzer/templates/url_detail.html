@@ -3,19 +3,39 @@
 {% block title %}Сайт: {{ url.name }}{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
+<div class="container-lg mt-3">
     <h1>Сайт: {{ url.name }}</h1>
     <p>Дата создания: {{ url.created_at }}</p>
-
+    <div class="table-responsive">
+        <table class="table table-bordered table-hover text-nowrap" data-test="url">
+            <tr>
+                <td>ID</td>
+                <td>{{ url.id }}</td>
+            </tr>
+            <tr>
+                <td>Имя</td>
+                <td>{{ url.name }}</td>
+            </tr>
+            <tr>
+                <td>Дата создания</td>
+                <td> {{ url.created_at }}</td>
+            </tr>
+        </table>
+    </div>
+    <div></div>
     <h2>Проверки</h2>
-    <table class="table" data-test="checks">
+    <form action="{{ url_for('add_check', url_id=url.id) }}" method="POST">
+        <input type="submit" class="btn btn-primary" value="Запустить проверку">
+    </form>
+    <div>
+    <table class="table table-bordered table-hover mt-2" data-test="checks">
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Код ответа</th>
-                <th>H1</th>
-                <th>Title</th>
-                <th>Description</th>
+                <th>h1</th>
+                <th>title</th>
+                <th>description</th>
                 <th>Дата создания</th>
             </tr>
         </thead>
@@ -29,17 +49,10 @@
                 <td>{{ check.description }}</td>
                 <td>{{ check.created_at }}</td>
             </tr>
-            {% else %}
-            <tr>
-                <td colspan="6" class="text-center">Проверки отсутствуют</td>
-            </tr>
+            
             {% endfor %}
         </tbody>
     </table>
-
-    <!-- Форма для создания новой проверки -->
-    <form action="{{ url_for('add_check', url_id=url.id) }}" method="POST">
-        <input type="submit" class="btn btn-primary" value="Запустить проверку">
-    </form>
+    </div>
 </div>
 {% endblock %}

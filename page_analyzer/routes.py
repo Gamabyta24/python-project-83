@@ -25,7 +25,7 @@ def index():
         url = request.form.get("url").strip()
 
         if not url or not validators.url(url) or len(url) > 255:
-            error = "Введите корректный URL (до 255 символов)"
+            flash("Некорректный URL", "danger")
         else:
             existing_url = get_url_by_name(url)
             if existing_url:  # Если URL уже есть в БД
@@ -37,7 +37,7 @@ def index():
 
             return redirect(url_for("show_url", url_id=url_id))
 
-    return render_template("index.html", error=error)
+    return render_template("index.html")
 
 
 @app.route("/urls")

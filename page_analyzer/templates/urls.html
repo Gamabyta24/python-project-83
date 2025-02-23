@@ -5,24 +5,22 @@
 {% block content %}
 <div class="container mt-5">
     <h1>Сайты</h1>
-    <table class="table">
+    <table class="table table-bordered table-hover text-nowrap" data-test="urls">
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Имя</th>
-                <th>Дата создания</th>
                 <th>Последняя проверка</th>
-                <th>Действия</th>
+                <th>Код ответа</th>
             </tr>
         </thead>
         <tbody>
             {% for url in urls %}
             <tr>
                 <td>{{ url.id }}</td>
-                <td>{{ url.name }}</td>
-                <td>{{ url.created_at }}</td>
-                <td>{{ url.last_check_date or "Не проверялся" }}</td>
-                <td><a href="{{ url_for('show_url', url_id=url.id) }}" class="btn btn-info">Посмотреть</a></td>
+                <td><a href="{{ url_for('show_url', url_id=url.id) }}">{{ url.name }}</a></td>
+                <td>{{ url.last_check_date }}</td>
+                <td>{{ url.last_status_code or "Не проверялся" }}</td>
             </tr>
             {% endfor %}
         </tbody>

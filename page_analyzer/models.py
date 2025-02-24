@@ -164,3 +164,30 @@ def get_last_check_date(url_id):
             )
             row = cur.fetchone()
             return row["created_at"] if row else None
+
+
+def get_content():
+    with get_db_connection() as conn:
+        with conn.cursor(cursor_factory=RealDictCursor) as curr:
+            curr.execute(
+                """
+                    DROP VIEW IF EXISTS filter;
+
+                    CREATE VIEW filter AS
+                    SELECT url_id, MAX(id) AS max_id FROM url_checks
+                    GROUP BY url_id;
+
+                    SELECT urls.id,
+                        name,
+                        max_id,
+                        status_code,
+                        url_checks.created_at
+                    FROM urls
+                    LEFT JOIN filter
+                    ON urls.id = filter.url_id
+                    LEFT JOIN url_checks
+                    ON url_checks.id = filter.max_id
+                    ORDER BY url_checks.created_at DESC, name;"""
+            )
+            result = curr.fetchall()
+            return result

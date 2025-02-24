@@ -48,16 +48,16 @@ def index():
     return render_template("index.html")
 
 
-@app.route("/urls")
-def show_urls():
-    urls = get_all_urls()
-    for url in urls:
-        url["last_check_date"] = get_last_check_date(url["id"])
-        url_checks = get_url_checks(url["id"])
-        last_check = url_checks[0] if url_checks else None
-        url["last_status_code"] = last_check["status_code"] if last_check else None
-        # Получаем дату последней проверки
-    return render_template("urls.html", urls=urls)
+# @app.route("/urls")
+# def show_urls():
+#     urls = get_all_urls()
+#     for url in urls:
+#         url["last_check_date"] = get_last_check_date(url["id"])
+#         url_checks = get_url_checks(url["id"])
+#         last_check = url_checks[0] if url_checks else None
+#         url["last_status_code"] = last_check["status_code"] if last_check else None
+#         # Получаем дату последней проверки
+#     return render_template("urls.html", urls=urls)
 
 
 @app.route("/urls/<int:url_id>")
@@ -114,7 +114,7 @@ def new_record():
         flash(error["name"], "alert-danger")
         messages = get_flashed_messages(with_categories=True)
         return (
-            render_template("pages/index.html", url=url["url"], messages=messages),
+            render_template("index.html", url=url["url"], messages=messages),
             422,
         )
     normalize_url = normalized_url(url["url"])
@@ -125,4 +125,16 @@ def new_record():
     else:
         url["id"] = add_url(normalize_url)
         flash("Страница успешно добавлена", "alert-success")
-        return redirect(url_for("site_page", id=url["id"]), code=302)
+        return redirect(url_for("show_url", id=url["id"]), code=302)
+
+
+@app.route("/urls")
+def all_pages():
+    list_pages = get_all_urls()
+    messages = get_flashed_messages(with_categories=True)
+    for url in list_pages:
+        url["last_check_date"] = get_last_check_date(url["id"])
+        url_checks = get_url_checks(url["id"])
+        last_check = url_checks[0] if url_checks else None
+        url["last_status_code"] = last_check["status_code"] if last_check else None
+    return render_template("urls.html", messages=messages, urls=list_pages)

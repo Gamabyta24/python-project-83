@@ -1,3 +1,4 @@
+
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from page_analyzer.config import Config
@@ -40,11 +41,12 @@ def create_tables():
 def add_url(url):
     """Добавляет URL в БД, если его еще нет."""
     existing_url = get_url_by_name(url)
+    valid_url = url.lower()
     if existing_url:
         return existing_url["id"]  # Если URL уже есть, просто возвращаем его id
     with get_db_connection() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute("INSERT INTO urls (name) VALUES (%s) RETURNING id", (url,))
+            cur.execute("INSERT INTO urls (name) VALUES (%s) RETURNING id", (valid_url,))
             conn.commit()
             return cur.fetchone()["id"]
 

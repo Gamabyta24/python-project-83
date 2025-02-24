@@ -3,6 +3,8 @@ from psycopg2.extras import RealDictCursor
 from page_analyzer.config import Config
 import requests
 from bs4 import BeautifulSoup
+from urllib.parse import urlparse
+import validators
 
 
 def get_db_connection():
@@ -16,16 +18,6 @@ def get_url_by_name(url):
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute("SELECT * FROM urls WHERE name = %s", (url,))
             return cur.fetchone()  # Вернет None, если URL нет в базе
-
-
-def drop_tables():
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """DROP TABLE IF EXISTS urls;
-                            DROP TABLE IF EXISTS url_checks;"""
-            )
-            conn.commit()
 
 
 def create_tables():
@@ -52,25 +44,6 @@ def add_url(url):
             return cur.fetchone()["id"]
 
 
-# Функция для получения всех URL
-def get_all_urls():
-    """Возвращает все URL из БД."""
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT urls.id, urls.name, urls.created_at,
-                       (SELECT created_at FROM url_checks
-                        WHERE url_checks.url_id = urls.id
-                        ORDER BY created_at DESC
-                        LIMIT 1) AS last_check
-                FROM urls ORDER BY urls.created_at DESC
-                """
-            )
-            return cur.fetchall()
-
-
-# Функция для поиска URL по ID
 def get_url_by_id(url_id):
     """Возвращает запись из БД по ID."""
     with get_db_connection() as conn:
@@ -79,104 +52,16 @@ def get_url_by_id(url_id):
             return cur.fetchone()
 
 
-def get_url_checks(url_id):
-    """Возвращает список проверок для указанного URL."""
-    with get_db_connection() as conn:
-        with conn.cursor(cursor_factory=RealDictCursor) as cur:
-            cur.execute(
-                """
-                SELECT id, status_code,
-                h1,
-                title,
-                description,
-                created_at FROM url_checks
-                WHERE url_id = %s ORDER BY id DESC
-                """,
-                (url_id,),
-            )
-            return cur.fetchall()
-
-
-def add_url_check(url_id):
-    """Добавляет проверку URL в БД."""
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            # Получаем URL по ID
-            cur.execute("SELECT name FROM urls WHERE id = %s", (url_id,))
-            url_row = cur.fetchone()
-
-            if not url_row:
-                return None  # Если URL не найден
-
-            url = url_row["name"]
-
-            try:
-                # Выполняем HTTP-запрос
-                response = requests.get(url, timeout=5)
-                response.raise_for_status()
-
-                status_code = response.status_code
-
-                # Парсим HTML-страницу
-                soup = BeautifulSoup(response.text, "html.parser")
-
-                h1 = soup.h1.text.strip() if soup.h1 else None
-                title = soup.title.text.strip() if soup.title else None
-                description = None
-
-                meta_desc = soup.find("meta", attrs={"name": "description"})
-                if meta_desc and meta_desc.get("content"):
-                    description = meta_desc["content"].strip()
-
-                # Добавляем данные в таблицу url_checks
-                cur.execute(
-                    """
-                    INSERT INTO url_checks (url_id,
-                    status_code,
-                    h1,
-                    title,
-                    description)
-                    VALUES (%s, %s, %s, %s, %s)
-                    RETURNING id, created_at
-                    """,
-                    (url_id, status_code, h1, title, description),
-                )
-                conn.commit()
-                return True
-
-            except requests.RequestException:
-                return False
-
-
-def get_checks_by_url(url_id):
-    """Возвращает все проверки для указанного
-    URL в порядке убывания даты создания."""
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """SELECT * FROM url_checks WHERE url_id = %s
-                ORDER BY created_at DESC""",
-                (url_id,),
-            )
-            return cur.fetchall()
-
-
-def get_last_check_date(url_id):
-    """Возвращает дату последней проверки для указанного URL."""
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            cur.execute(
-                """
-                SELECT created_at FROM url_checks
-                WHERE url_id = %s ORDER BY created_at DESC LIMIT 1
-                """,
-                (url_id,),
-            )
-            row = cur.fetchone()
-            return row["created_at"] if row else None
-
-
 def get_content():
+    """
+    Получает список URL-адресов с последними проверками.
+
+    Создает временное `filter`, содержит id URL и максимальный id проверки.
+    Затем извлекает данные из таблицы `urls`, дополняя их информацией
+    о последней проверке из `url_checks`.
+
+    Возвращает список словарей с данными URL и последней проверки.
+    """
     with get_db_connection() as conn:
         with conn.cursor(cursor_factory=RealDictCursor) as curr:
             curr.execute(
@@ -201,3 +86,116 @@ def get_content():
             )
             result = curr.fetchall()
             return result
+
+
+def get_url_checks(url_id):
+    """
+    Возвращает список проверок для указанного URL.
+
+    Данные берутся из таблицы `url_checks`, сортируются по id.
+    """
+    with get_db_connection() as conn:
+        with conn.cursor(cursor_factory=RealDictCursor) as cur:
+            cur.execute(
+                """
+                SELECT id, status_code,
+                h1,
+                title,
+                description,
+                created_at FROM url_checks
+                WHERE url_id = %s ORDER BY id DESC
+                """,
+                (url_id,),
+            )
+            return cur.fetchall()
+
+
+def find_seo(url):
+    """
+    Выполняет HTTP-запрос к переданному URL и анализирует HTML-код.
+
+    Извлекает заголовок h1, title и meta-описание (description).
+
+    Возвращает словарь с найденными значениями.
+    """
+    text = requests.get(url["name"]).text
+    soup = BeautifulSoup(text, "lxml")
+    h1 = None
+    title = None
+    meta = None
+    content = None
+    try:
+        h1 = soup.h1.text
+    except Exception:
+        pass
+    try:
+        title = soup.title.text
+    except Exception:
+        pass
+    meta = soup.select('meta[name="description"]')
+    for attr in meta:
+        content = attr.get("content")
+    return {"title": title, "h1": h1, "content": content}
+
+
+def add_check(url_id, status_code, title, h1, content):
+    """
+    Добавляет новую запись о проверке URL в базу данных.
+
+    Записывает `url_id`, HTTP-статус, заголовок h1, title и описание.
+    """
+    with get_db_connection() as conn:
+        with conn.cursor() as curr:
+            curr.execute(
+                """
+                    INSERT INTO url_checks (
+                        url_id, status_code, h1, title, description)
+                    VALUES (%s, %s, %s, %s, %s);
+                        """,
+                (url_id, status_code, h1, title, content),
+            )
+
+
+def get_id(url):
+    """
+    Ищет ID переданного URL в таблице `urls`.
+
+    Если URL найден, возвращает его ID. Если нет – возвращает None.
+    """
+    with get_db_connection() as conn:
+        with conn.cursor(cursor_factory=RealDictCursor) as curr:
+            curr.execute("SELECT id FROM urls WHERE name = %s", (url,))
+            result = curr.fetchone()
+
+            if result is None:
+                return None
+
+            return result.get("id")
+
+
+def normalized_url(url):
+    """
+    Приводит URL к стандартному виду, убирая путь, параметры и фрагменты.
+
+    Возвращает нормализованный URL в нижнем регистре.
+    """
+    parsed_url = urlparse(url)
+    normalized_parsed_url = parsed_url._replace(
+        path="", params="", query="", fragment=""
+    ).geturl()
+    return normalized_parsed_url.lower()
+
+
+def is_validate(url):
+    """
+    Проверяет корректность переданного URL.
+
+    Возвращает словарь ошибок, если URL некорректен или превышает 255 символов.
+    """
+    errors = {}
+    is_valid = validators.url(url)
+    if not is_valid:
+        errors["name"] = "Некорректный URL"
+    if len(url) > 255:
+        errors["name"] = "Слишком длинный адрес"
+    return errors

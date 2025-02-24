@@ -26,24 +26,48 @@ app.config.from_object(Config)
 # Создаём таблицы при старте
 
 
+# @app.route("/", methods=["GET", "POST"])
+# def index():
+#     url_id = None
+#     messages = get_flashed_messages(with_categories=True)
+#     if request.method == "POST":
+#         url = request.form.get("url").strip()
+
+#         if not url or not validators.url(url) or len(url) > 255:
+#             flash("Некорректный URL", "danger")
+#             return render_template("index.html")
+#         else:
+#             existing_url = get_url_by_name(url)
+#             if existing_url:  # Если URL уже есть в БД
+#                 url_id = existing_url["id"]
+#                 flash("Страница уже существует", "info")
+#             else:
+#                 url_id = add_url(url)
+#                 flash("Страница успешно добавлена", "success")
+
+#             return redirect(url_for("show_url", url_id=url_id))
+
+
+#     return render_template("index.html",messages=messages)
 @app.route("/", methods=["GET", "POST"])
 def index():
-    url_id = None
     if request.method == "POST":
         url = request.form.get("url").strip()
 
         if not url or not validators.url(url) or len(url) > 255:
             flash("Некорректный URL", "danger")
-        else:
-            existing_url = get_url_by_name(url)
-            if existing_url:  # Если URL уже есть в БД
-                url_id = existing_url["id"]
-                flash("Страница уже существует", "info")
-            else:
-                url_id = add_url(url)
-                flash("Страница успешно добавлена", "success")
+            return render_template(
+                "index.html"
+            )  # Просто рендерим страницу, без вызова get_flashed_messages()
 
-            return redirect(url_for("show_url", url_id=url_id))
+        existing_url = get_url_by_name(url)
+        if existing_url:
+            flash("Страница уже существует", "info")
+            return redirect(url_for("show_url", url_id=existing_url["id"]))
+
+        url_id = add_url(url)
+        flash("Страница успешно добавлена", "success")
+        return redirect(url_for("show_url", url_id=url_id))
 
     return render_template("index.html")
 
@@ -88,7 +112,7 @@ def add_check(url_id):
     return redirect(url_for("show_url", url_id=url_id))
 
 
-def normalized_url(self, url):
+def normalized_url(url):
     parsed_url = urlparse(url)
     normalized_parsed_url = parsed_url._replace(
         path="", params="", query="", fragment=""

@@ -86,7 +86,7 @@ def get_url_checks(url_id):
             cur.execute(
                 """
                 SELECT id, status_code, h1, title, description, created_at FROM url_checks
-                WHERE url_id = %s ORDER BY created_at DESC
+                WHERE url_id = %s ORDER BY id DESC
                 """,
                 (url_id,),
             )

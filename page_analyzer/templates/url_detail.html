@@ -1,58 +1,59 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block title %}Сайт: {{ url.name }}{% endblock %}
+{% block main %}
 
-{% block content %}
 <div class="container-lg mt-3">
-    <h1>Сайт: {{ url.name }}</h1>
-    <p>Дата создания: {{ url.created_at }}</p>
+    <h1>Сайт: {{ page.name }}</h1>
     <div class="table-responsive">
         <table class="table table-bordered table-hover text-nowrap" data-test="url">
-            <tr>
-                <td>ID</td>
-                <td>{{ url.id }}</td>
-            </tr>
-            <tr>
-                <td>Имя</td>
-                <td>{{ url.name }}</td>
-            </tr>
-            <tr>
-                <td>Дата создания</td>
-                <td> {{ url.created_at }}</td>
-            </tr>
+            <tbody>
+                <tr>
+                    <td>ID</td>
+                    <td>{{ page.id }}</td>
+                </tr>
+                <tr>
+                    <td>Имя</td>
+                    <td>{{ page.name }}</td>
+                </tr>
+                <tr>
+                    <td>Дата создания</td>
+                    <td>{{ page.created_at }}</td>
+                </tr>
+            </tbody>
         </table>
     </div>
-    <div></div>
-    <h2>Проверки</h2>
-    <form action="{{ url_for('add_check', url_id=url.id) }}" method="POST">
+    <h2 class="mt-5 mb-3">Проверки</h2>
+    <form action="{{ url_for('check_page', id=page.id) }}" method="post">
         <input type="submit" class="btn btn-primary" value="Запустить проверку">
     </form>
     <div>
-    <table class="table table-bordered table-hover mt-2" data-test="checks">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Код ответа</th>
-                <th>h1</th>
-                <th>title</th>
-                <th>description</th>
-                <th>Дата создания</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for check in url_checks %}
-            <tr>
-                <td>{{ check.id }}</td>
-                <td>{{ check.status_code }}</td>
-                <td>{{ check.h1 }}</td>
-                <td>{{ check.title }}</td>
-                <td>{{ check.description }}</td>
-                <td>{{ check.created_at }}</td>
-            </tr>
-            
-            {% endfor %}
-        </tbody>
-    </table>
+        <table class="table table-bordered table-hover mt-2" data-test="checks"> 
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Код ответа</th>
+                    <th>h1</th>
+                    <th>title</th>
+                    <th>description</th>
+                    <th>Дата создания</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if rows %}
+                {% for row in rows %}
+                <tr>
+                    <td>{{ row.id if row.id}}</td>
+                    <td>{{ row.status_code if row.status_code}}</td>
+                    <td>{{ row.h1 if row.h1 }}</td>
+                    <td>{{ row.title if row.title }}</td>
+                    <td>{{ row.description if row.description }}</td>
+                    <td>{{ row.created_at if row.created_at}}</td>
+                </tr>
+                {% endfor %}
+            {% endif %}
+            </tbody>
+        </table>
     </div>
 </div>
+
 {% endblock %}

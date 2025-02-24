@@ -129,7 +129,11 @@ def new_record():
     if error:
         flash(error["name"], "alert-danger")
         messages = get_flashed_messages(with_categories=True)
-        return render_template("index.html", url=url["url"], messages=messages), 422
+        return render_template(
+            "index.html",
+            url=url["url"],
+            messages=messages
+            ), 422
     normalize_url = normalized_url(url["url"])
     page_id = get_id(normalize_url)
     if page_id:
@@ -146,7 +150,12 @@ def site_page(id):
     page = get_url_by_id(id)
     messages = get_flashed_messages(with_categories=True)
     checks = get_url_checks(id)
-    return render_template("url_detail.html", page=page, rows=checks, messages=messages)
+    return render_template(
+        "url_detail.html",
+        page=page,
+        rows=checks,
+        messages=messages
+        )
 
 
 @app.post("/urls/<id>/checks")

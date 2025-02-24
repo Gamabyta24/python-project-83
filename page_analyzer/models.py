@@ -85,7 +85,11 @@ def get_url_checks(url_id):
         with conn.cursor(cursor_factory=RealDictCursor) as cur:
             cur.execute(
                 """
-                SELECT id, status_code, h1, title, description, created_at FROM url_checks
+                SELECT id, status_code,
+                h1,
+                title,
+                description,
+                created_at FROM url_checks
                 WHERE url_id = %s ORDER BY id DESC
                 """,
                 (url_id,),
@@ -109,7 +113,7 @@ def add_url_check(url_id):
             try:
                 # Выполняем HTTP-запрос
                 response = requests.get(url, timeout=5)
-                response.raise_for_status()  # Вызывает исключение при ошибке HTTP
+                response.raise_for_status()
 
                 status_code = response.status_code
 
@@ -127,7 +131,11 @@ def add_url_check(url_id):
                 # Добавляем данные в таблицу url_checks
                 cur.execute(
                     """
-                    INSERT INTO url_checks (url_id, status_code, h1, title, description)
+                    INSERT INTO url_checks (url_id,
+                    status_code,
+                    h1,
+                    title,
+                    description)
                     VALUES (%s, %s, %s, %s, %s)
                     RETURNING id, created_at
                     """,
@@ -146,7 +154,8 @@ def get_checks_by_url(url_id):
     with get_db_connection() as conn:
         with conn.cursor() as cur:
             cur.execute(
-                "SELECT * FROM url_checks WHERE url_id = %s ORDER BY created_at DESC",
+                """SELECT * FROM url_checks WHERE url_id = %s
+                ORDER BY created_at DESC""",
                 (url_id,),
             )
             return cur.fetchall()
@@ -158,8 +167,9 @@ def get_last_check_date(url_id):
         with conn.cursor() as cur:
             cur.execute(
                 """
-                SELECT created_at FROM url_checks WHERE url_id = %s ORDER BY created_at DESC LIMIT 1
-            """,
+                SELECT created_at FROM url_checks
+                WHERE url_id = %s ORDER BY created_at DESC LIMIT 1
+                """,
                 (url_id,),
             )
             row = cur.fetchone()

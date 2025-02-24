@@ -19,7 +19,6 @@ app.config.from_object(Config)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    error = None
     url_id = None
     if request.method == "POST":
         url = request.form.get("url").strip()

@@ -1,4 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, flash , get_flashed_messages
+from flask import (
+    Flask,
+    render_template,
+    request,
+    redirect,
+    url_for,
+    flash,
+    get_flashed_messages,
+)
 import validators
 from page_analyzer.models import (
     add_url,
@@ -7,9 +15,10 @@ from page_analyzer.models import (
     get_url_by_name,
     get_url_checks,
     add_url_check,
-    get_last_check_date
+    get_last_check_date,
 )
 from page_analyzer.config import Config
+from urllib.parse import urlparse
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -78,43 +87,42 @@ def add_check(url_id):
     # Перенаправляем на страницу с деталями сайта
     return redirect(url_for("show_url", url_id=url_id))
 
-from urllib.parse import urlparse
 
 def normalized_url(self, url):
-        parsed_url = urlparse(url)
-        normalized_parsed_url = parsed_url._replace(
-            path="", params="", query="", fragment="").geturl()
-        return normalized_parsed_url.lower()
+    parsed_url = urlparse(url)
+    normalized_parsed_url = parsed_url._replace(
+        path="", params="", query="", fragment=""
+    ).geturl()
+    return normalized_parsed_url.lower()
+
 
 def is_validate(url):
-        errors = {}
-        is_valid = validators.url(url)
-        if not is_valid:
-            errors['name'] = "Некорректный URL"
-        if len(url) > 255:
-            errors['name'] = "Слишком длинный адрес"
-        return errors
+    errors = {}
+    is_valid = validators.url(url)
+    if not is_valid:
+        errors["name"] = "Некорректный URL"
+    if len(url) > 255:
+        errors["name"] = "Слишком длинный адрес"
+    return errors
 
 
-
-@app.post('/urls')
+@app.post("/urls")
 def new_record():
     url = request.form.to_dict()
-    error = is_validate(url['url'])
+    error = is_validate(url["url"])
     if error:
-        flash(error['name'], "alert-danger")
+        flash(error["name"], "alert-danger")
         messages = get_flashed_messages(with_categories=True)
-        return render_template(
-            'pages/index.html',
-            url=url['url'],
-            messages=messages
-            ), 422
-    normalize_url = normalized_url(url['url'])
+        return (
+            render_template("pages/index.html", url=url["url"], messages=messages),
+            422,
+        )
+    normalize_url = normalized_url(url["url"])
     page_id = get_url_by_name(normalize_url)
     if page_id:
         flash("Страница уже существует", "alert-info")
-        return redirect(url_for('site_page', id=page_id), code=302)
+        return redirect(url_for("site_page", id=page_id), code=302)
     else:
-        url['id'] = add_url(normalize_url)
+        url["id"] = add_url(normalize_url)
         flash("Страница успешно добавлена", "alert-success")
-        return redirect(url_for('site_page', id=url['id']), code=302)
+        return redirect(url_for("site_page", id=url["id"]), code=302)

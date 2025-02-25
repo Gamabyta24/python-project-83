@@ -16,15 +16,6 @@ def get_url_by_name(url):
             return cur.fetchone()  # Вернет None, если URL нет в базе
 
 
-def create_tables():
-    """Создает таблицы в БД."""
-    with get_db_connection() as conn:
-        with conn.cursor() as cur:
-            with open("database.sql", "r") as f:
-                cur.execute(f.read())
-            conn.commit()
-
-
 def add_url(url):
     """Добавляет URL в БД, если его еще нет."""
     existing_url = get_url_by_name(url)

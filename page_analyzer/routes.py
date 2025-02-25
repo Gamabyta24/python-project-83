@@ -8,17 +8,15 @@ from flask import (
     get_flashed_messages,
 )
 import requests
-from page_analyzer.models import (
+from page_analyzer.utility_bd import (
     add_url,
     get_url_by_id,
     get_url_checks,
-    is_validate,
-    normalized_url,
     get_id,
-    find_seo,
     get_content,
     add_check,
 )
+from page_analyzer.utility_check import is_validate, normalized_url, find_seo
 from page_analyzer.config import Config
 
 
@@ -33,25 +31,25 @@ def index_page():
 
 
 @app.post("/urls")
-def new_record():
+def create_new_url():
     url = request.form.to_dict()
     error = is_validate(url["url"])
     if error:
         flash(error["name"], "alert-danger")
         messages = get_flashed_messages(with_categories=True)
-        return render_template("index.html",
-                               url=url["url"],
-                               messages=messages
-                               ), 422
+        return render_template(
+            "index.html",
+            url=url["url"],
+            messages=messages
+            ), 422
     normalize_url = normalized_url(url["url"])
     page_id = get_id(normalize_url)
     if page_id:
         flash("Страница уже существует", "alert-info")
         return redirect(url_for("site_page", id=page_id), code=302)
-    else:
-        url["id"] = add_url(normalize_url)
-        flash("Страница успешно добавлена", "alert-success")
-        return redirect(url_for("site_page", id=url["id"]), code=302)
+    url["id"] = add_url(normalize_url)
+    flash("Страница успешно добавлена", "alert-success")
+    return redirect(url_for("site_page", id=url["id"]), code=302)
 
 
 @app.route("/urls/<int:id>")
@@ -59,11 +57,11 @@ def site_page(id):
     page = get_url_by_id(id)
     messages = get_flashed_messages(with_categories=True)
     checks = get_url_checks(id)
-    return render_template("url_detail.html",
-                           page=page,
-                           rows=checks,
-                           messages=messages
-                           )
+    return render_template(
+        "url_detail.html",
+        page=page, rows=checks,
+        messages=messages
+        )
 
 
 @app.post("/urls/<id>/checks")

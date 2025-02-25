@@ -1,10 +1,6 @@
 import psycopg2
 from psycopg2.extras import RealDictCursor
 from page_analyzer.config import Config
-import requests
-from bs4 import BeautifulSoup
-from urllib.parse import urlparse
-import validators
 
 
 def get_db_connection():
@@ -110,34 +106,6 @@ def get_url_checks(url_id):
             return cur.fetchall()
 
 
-def find_seo(url):
-    """
-    Выполняет HTTP-запрос к переданному URL и анализирует HTML-код.
-
-    Извлекает заголовок h1, title и meta-описание (description).
-
-    Возвращает словарь с найденными значениями.
-    """
-    text = requests.get(url["name"]).text
-    soup = BeautifulSoup(text, "lxml")
-    h1 = None
-    title = None
-    meta = None
-    content = None
-    try:
-        h1 = soup.h1.text
-    except Exception:
-        pass
-    try:
-        title = soup.title.text
-    except Exception:
-        pass
-    meta = soup.select('meta[name="description"]')
-    for attr in meta:
-        content = attr.get("content")
-    return {"title": title, "h1": h1, "content": content}
-
-
 def add_check(url_id, status_code, title, h1, content):
     """
     Добавляет новую запись о проверке URL в базу данных.
@@ -171,31 +139,3 @@ def get_id(url):
                 return None
 
             return result.get("id")
-
-
-def normalized_url(url):
-    """
-    Приводит URL к стандартному виду, убирая путь, параметры и фрагменты.
-
-    Возвращает нормализованный URL в нижнем регистре.
-    """
-    parsed_url = urlparse(url)
-    normalized_parsed_url = parsed_url._replace(
-        path="", params="", query="", fragment=""
-    ).geturl()
-    return normalized_parsed_url.lower()
-
-
-def is_validate(url):
-    """
-    Проверяет корректность переданного URL.
-
-    Возвращает словарь ошибок, если URL некорректен или превышает 255 символов.
-    """
-    errors = {}
-    is_valid = validators.url(url)
-    if not is_valid:
-        errors["name"] = "Некорректный URL"
-    if len(url) > 255:
-        errors["name"] = "Слишком длинный адрес"
-    return errors

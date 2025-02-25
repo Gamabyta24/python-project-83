@@ -7,7 +7,7 @@
         <div class="col-12 col-md-10 col-lg-8 mx-auto border rounded-3 bg-light p-5">
             <h1 class="display-3">Анализатор страниц</h1>
             <p class="lead">Бесплатно проверяйте сайты на SEO-пригодность</p>
-            <form action="{{ url_for('new_record') }}" method="post" class="d-flex justify-content-center" role="search">
+            <form action="{{ url_for('create_new_url') }}" method="post" class="d-flex justify-content-center" role="search">
                 <input class="form-control me-2" name="url" placeholder="https://www.example.com" required value="{{ url }}">
                 <input class="btn btn-primary btn-lg ms-3 px-5 text-uppercase mx-3" type="submit" value="Проверить">
             </form>

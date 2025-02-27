@@ -39,7 +39,7 @@ def get_url_by_id(url_id):
             return cur.fetchone()
 
 
-def get_content():
+def get_urls_with_last_check():
     """
     Получает список URL-адресов с последними проверками.
 
@@ -53,23 +53,22 @@ def get_content():
         with conn.cursor(cursor_factory=RealDictCursor) as curr:
             curr.execute(
                 """
-                    DROP VIEW IF EXISTS filter;
-
-                    CREATE VIEW filter AS
-                    SELECT url_id, MAX(id) AS max_id FROM url_checks
-                    GROUP BY url_id;
-
-                    SELECT urls.id,
-                        name,
-                        max_id,
-                        status_code,
-                        url_checks.created_at
-                    FROM urls
-                    LEFT JOIN filter
-                    ON urls.id = filter.url_id
-                    LEFT JOIN url_checks
-                    ON url_checks.id = filter.max_id
-                    ORDER BY url_checks.created_at DESC, name;"""
+                SELECT urls.id,
+                urls.name,
+                url_checks.id AS max_id,
+                url_checks.status_code,
+                url_checks.created_at
+                FROM urls
+                LEFT JOIN (
+                SELECT url_id, MAX(id) AS max_id
+                FROM url_checks
+                GROUP BY url_id) 
+                AS latest_checks
+                ON urls.id = latest_checks.url_id
+                LEFT JOIN url_checks
+                ON url_checks.id = latest_checks.max_id
+                ORDER BY urls.id DESC;
+                """
             )
             result = curr.fetchall()
             return result

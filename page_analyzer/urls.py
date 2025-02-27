@@ -1,10 +1,6 @@
 from urllib.parse import urlparse, urlunparse
 import validators
-from bs4 import BeautifulSoup
-import requests
-
-
-def normalized_url(url):
+def normalize_url(url):
     """
     Приводит URL к стандартному виду, убирая путь, параметры и фрагменты.
 
@@ -17,7 +13,7 @@ def normalized_url(url):
     return normalized_parsed_url.lower()
 
 
-def is_validate(url):
+def validate(url):
     """
     Проверяет корректность переданного URL.
 
@@ -30,20 +26,3 @@ def is_validate(url):
     if len(url) > 255:
         errors["name"] = "Слишком длинный адрес"
     return errors
-
-
-def find_seo(url):
-    """
-    Выполняет HTTP-запрос к переданному URL и анализирует HTML-код.
-
-    Извлекает заголовок h1, title и meta-описание (description).
-
-    Возвращает словарь с найденными значениями.
-    """
-    text = requests.get(url["name"]).text
-    soup = BeautifulSoup(text, "lxml")
-    h1 = soup.h1.text if soup.h1 else ""
-    title = soup.title.text if soup.title else ""
-    meta = soup.select('meta[name="description"]')
-    content = meta[0].get("content") if meta and meta[0].get("content") else ""
-    return {"title": title, "h1": h1, "content": content}

@@ -17,7 +17,7 @@
                 {% for row in rows %}
                 <tr>
                     <td>{{ row.id }}</td>
-                    <td><a href="{{ url_for('site_page', id=row.id) }}">{{ row.name }}</a></td>
+                    <td><a href="{{ url_for('get_site_page', id=row.id) }}">{{ row.name }}</a></td>
                     <td>{{ row.created_at if row.created_at }}</td>
                     <td>{{ row.status_code if row.status_code }}</td>
                 </tr>

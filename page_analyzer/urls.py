@@ -1,5 +1,7 @@
 from urllib.parse import urlparse, urlunparse
 import validators
+
+
 def normalize_url(url):
     """
     Приводит URL к стандартному виду, убирая путь, параметры и фрагменты.

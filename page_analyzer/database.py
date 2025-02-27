@@ -62,7 +62,7 @@ def get_urls_with_last_check():
                 LEFT JOIN (
                 SELECT url_id, MAX(id) AS max_id
                 FROM url_checks
-                GROUP BY url_id) 
+                GROUP BY url_id)
                 AS latest_checks
                 ON urls.id = latest_checks.url_id
                 LEFT JOIN url_checks

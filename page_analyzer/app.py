@@ -59,7 +59,8 @@ def get_site_page(id):
     checks = get_url_checks(id)
     return render_template(
         "url_detail.html",
-        page=page, rows=checks,
+        page=page,
+        rows=checks,
         messages=messages
         )
 
@@ -85,7 +86,6 @@ def get_all_pages():
     list_pages = get_urls_with_last_check()
     messages = get_flashed_messages(with_categories=True)
     return render_template("urls.html", messages=messages, rows=list_pages)
-
 
 
 if __name__ == "__main__":
